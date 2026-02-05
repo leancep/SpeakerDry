@@ -1,11 +1,37 @@
 import React from "react";
-import { SafeAreaView, StyleSheet, View, ViewProps } from "react-native";
+import { StyleSheet, View, ViewProps, ScrollView } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "../app/theme";
 
-export function Screen({ children }: { children: React.ReactNode }) {
+type ScreenProps = {
+  children: React.ReactNode;
+  scroll?: boolean;
+};
+
+export function Screen({ children, scroll = false }: ScreenProps) {
+  const insets = useSafeAreaInsets();
+
+  if (scroll) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["bottom"]}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: theme.space.lg + insets.bottom },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {children}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>{children}</View>
+    <SafeAreaView style={styles.safe} edges={["bottom"]}>
+      <View style={[styles.container, { paddingBottom: theme.space.lg + insets.bottom }]}>
+        {children}
+      </View>
     </SafeAreaView>
   );
 }
@@ -16,7 +42,16 @@ export function Card({ style, ...props }: ViewProps) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.color.bg },
+
+  // No-scroll
   container: { flex: 1, padding: theme.space.lg, gap: theme.space.md },
+
+  // Scroll
+  scrollContent: {
+    padding: theme.space.lg,
+    gap: theme.space.md,
+  },
+
   card: {
     backgroundColor: theme.color.card,
     borderRadius: theme.radius.xl,

@@ -1,37 +1,83 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Alert, Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ErrorCode, useIAP, type Subscription } from "react-native-iap";
 
 type Entitlements = {
   isPro: boolean;
-  proLabel: string; // texto para mostrar precio
+  proLabel: string;
   canManualUnlimited: boolean;
   canDeepClean: boolean;
 
-  // acciones
   refresh: () => Promise<void>;
   buyPro: () => Promise<void>;
   restore: () => Promise<void>;
 
-  // opcional para dev
-  setProDebug: (v: boolean) => void;
+  setProDebug: (v: boolean) => Promise<void>;
 };
 
 const Ctx = createContext<Entitlements | null>(null);
 
-// 👇 tu SKU real (mismo en iOS y Android)
 const PRO_SKU = "speakerdry_pro_monthly";
+const DEV_PRO_KEY = "dev_is_pro";
+
+// En dev con applicationIdSuffix ".debug" NO hay billing real (package no coincide con Play Console).
+const IAP_ENABLED = !__DEV__ && Platform.OS === "android";
 
 function getBestOfferTokens(sub: Subscription) {
-  // Android: subscriptionOfferDetailsAndroid trae offerToken. :contentReference[oaicite:2]{index=2}
   const offers = sub.subscriptionOfferDetailsAndroid ?? [];
-  return offers.map((o) => ({
-    sku: sub.id,
-    offerToken: o.offerToken,
-  }));
+  return offers.map((o) => ({ sku: sub.id, offerToken: o.offerToken }));
 }
 
-export function EntitlementsProvider({ children }: { children: React.ReactNode }) {
+/** Provider “NOOP”: no toca IAP, no inicializa nada */
+function EntitlementsProviderNoop({ children }: { children: React.ReactNode }) {
+  const [isPro, setIsPro] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const v = await AsyncStorage.getItem(DEV_PRO_KEY);
+        if (v === "1") setIsPro(true);
+      } catch {}
+    })();
+  }, []);
+
+  const setProDebug = async (v: boolean) => {
+    setIsPro(v);
+    try {
+      await AsyncStorage.setItem(DEV_PRO_KEY, v ? "1" : "0");
+    } catch {}
+  };
+
+  const value = useMemo(
+    () => ({
+      isPro,
+      proLabel: "Plan mensual",
+      canManualUnlimited: isPro,
+      canDeepClean: isPro,
+
+      refresh: async () => {},
+
+      // ✅ En DEV: el botón del paywall ofrece un toggle PRO
+      buyPro: async () => {
+        await setProDebug(!isPro);
+        Alert.alert("PRO (DEV)", !isPro ? "PRO activado." : "PRO desactivado.");
+      },
+
+      restore: async () => {
+        Alert.alert("Restaurar (DEV)", isPro ? "PRO activo." : "No hay PRO activo.");
+      },
+
+      setProDebug,
+    }),
+    [isPro]
+  );
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+/** Provider REAL: usa react-native-iap */
+function EntitlementsProviderIap({ children }: { children: React.ReactNode }) {
   const [isPro, setIsPro] = useState(false);
 
   const {
@@ -45,8 +91,6 @@ export function EntitlementsProvider({ children }: { children: React.ReactNode }
   } = useIAP({
     onPurchaseSuccess: async (purchase) => {
       try {
-        // En producción: validar receipt en backend antes de conceder PRO.
-        // Por ahora: concedemos PRO y finalizamos.
         setIsPro(true);
       } finally {
         await finishTransaction({ purchase, isConsumable: false });
@@ -59,26 +103,24 @@ export function EntitlementsProvider({ children }: { children: React.ReactNode }
     },
   });
 
-  // 1) cargar producto subscription cuando conecta
   useEffect(() => {
     if (!connected) return;
     fetchProducts({ skus: [PRO_SKU], type: "subs" });
   }, [connected, fetchProducts]);
 
-  // 2) refrescar estado PRO en launch (o cuando conecta)
   async function refresh() {
     try {
       if (!connected) return;
-      const active = await hasActiveSubscriptions([PRO_SKU]); // check rápido :contentReference[oaicite:3]{index=3}
+
+      const active = await hasActiveSubscriptions([PRO_SKU]);
       if (active) {
         setIsPro(true);
         return;
       }
-      // fallback: lista activa
+
       const list = await getActiveSubscriptions();
       setIsPro(list.some((p) => p.productId === PRO_SKU));
     } catch {
-      // si falla, no rompemos UI
       setIsPro(false);
     }
   }
@@ -89,18 +131,14 @@ export function EntitlementsProvider({ children }: { children: React.ReactNode }
   }, [connected]);
 
   const proSub = subscriptions.find((s) => s.id === PRO_SKU);
-  const proLabel = useMemo(() => {
-    // precio para UI si está disponible
-    // iOS: subscription.localizedPrice (depende build), Android: pricingPhases (depende)
-    // mantenemos fallback simple:
-    return proSub?.displayPrice ?? "Plan mensual";
-  }, [proSub]);
+  const proLabel = useMemo(() => proSub?.displayPrice ?? "Plan mensual", [proSub]);
 
   async function buyPro() {
     if (!connected) {
       Alert.alert("Tienda no disponible", "Probá de nuevo en unos segundos.");
       return;
     }
+
     const sub = subscriptions.find((s) => s.id === PRO_SKU);
     if (!sub) {
       Alert.alert("No disponible", "No se encontró el producto. Revisá el SKU.");
@@ -120,7 +158,6 @@ export function EntitlementsProvider({ children }: { children: React.ReactNode }
   }
 
   async function restore() {
-    // Para subs normalmente con refresh alcanza, pero dejamos un “Restaurar”:
     await refresh();
     Alert.alert("Listo", isPro ? "PRO activo." : "No se encontró suscripción activa.");
   }
@@ -140,6 +177,12 @@ export function EntitlementsProvider({ children }: { children: React.ReactNode }
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+export function EntitlementsProvider({ children }: { children: React.ReactNode }) {
+  // ⭐ clave: en dev NO montamos el provider que llama useIAP()
+  if (!IAP_ENABLED) return <EntitlementsProviderNoop>{children}</EntitlementsProviderNoop>;
+  return <EntitlementsProviderIap>{children}</EntitlementsProviderIap>;
 }
 
 export function useEntitlements() {

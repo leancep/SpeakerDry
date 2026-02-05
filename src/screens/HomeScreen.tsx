@@ -18,7 +18,8 @@ export default function HomeScreen({ navigation }: Props) {
     const ent = useEntitlements();
 
     return (
-        <Screen>
+        <Screen scroll>
+
             {/* HERO */}
             <Card style={styles.hero}>
                 <View style={styles.heroRow}>

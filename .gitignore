@@ -36,6 +36,7 @@ local.properties
 .kotlin/
 android/**/keystores/
 android/**/*.keystore
+android/keystore.properties
 
 
 # node.js

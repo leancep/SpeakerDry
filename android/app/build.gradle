@@ -72,6 +72,13 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -82,20 +89,27 @@ android {
         applicationId "com.speakerdry"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 2
         versionName "1.0"
     }
     signingConfigs {
-        release {
-            storeFile file(SPEAKERDRY_UPLOAD_STORE_FILE)
-            storePassword System.getenv("SPEAKERDRY_UPLOAD_STORE_PASSWORD")
-            keyAlias SPEAKERDRY_UPLOAD_KEY_ALIAS
-            keyPassword System.getenv("SPEAKERDRY_UPLOAD_KEY_PASSWORD")
+    release {
+        if (keystorePropertiesFile.exists()) {
+            storeFile file(keystoreProperties["SPEAKERDRY_UPLOAD_STORE_FILE"])
+            storePassword keystoreProperties["SPEAKERDRY_UPLOAD_STORE_PASSWORD"]
+            keyAlias keystoreProperties["SPEAKERDRY_UPLOAD_KEY_ALIAS"]
+            keyPassword keystoreProperties["SPEAKERDRY_UPLOAD_KEY_PASSWORD"]
         }
     }
-
+}
 
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            // opcional, te deja instalar aunque exista una con otro key del MISMO id (pero ya no chocan)
+            // debuggable true  // ya lo es por default
+        }
         release {
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
