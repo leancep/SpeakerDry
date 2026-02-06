@@ -1,24 +1,21 @@
 import React from "react";
-import { StyleSheet, View, ViewProps, ScrollView } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { StyleSheet, View, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { theme } from "../app/theme";
 
-type ScreenProps = {
+export function Screen({
+  children,
+  scroll = false,
+}: {
   children: React.ReactNode;
   scroll?: boolean;
-};
-
-export function Screen({ children, scroll = false }: ScreenProps) {
-  const insets = useSafeAreaInsets();
-
+}) {
   if (scroll) {
     return (
-      <SafeAreaView style={styles.safe} edges={["bottom"]}>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: theme.space.lg + insets.bottom },
-          ]}
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {children}
@@ -28,35 +25,43 @@ export function Screen({ children, scroll = false }: ScreenProps) {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={[styles.container, { paddingBottom: theme.space.lg + insets.bottom }]}>
-        {children}
-      </View>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <View style={styles.container}>{children}</View>
     </SafeAreaView>
   );
 }
 
-export function Card({ style, ...props }: ViewProps) {
-  return <View {...props} style={[styles.card, style]} />;
+export function Card({ children, style }: any) {
+  return <View style={[styles.card, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.color.bg },
-
-  // No-scroll
-  container: { flex: 1, padding: theme.space.lg, gap: theme.space.md },
-
-  // Scroll
-  scrollContent: {
-    padding: theme.space.lg,
-    gap: theme.space.md,
+  safe: {
+    flex: 1,
+    backgroundColor: theme.color.bg,
   },
-
+  container: {
+    flex: 1,
+    padding: theme.space.lg,
+    backgroundColor: theme.color.bg,
+    gap: 14,
+  },
+  scroll: {
+    flex: 1,
+    backgroundColor: theme.color.bg,
+  },
+  scrollContent: {
+    flexGrow: 1, // 🔥 clave: rellena el alto y evita “gris” abajo
+    padding: theme.space.lg,
+    backgroundColor: theme.color.bg,
+    gap: 14,
+    paddingBottom: 24,
+  },
   card: {
     backgroundColor: theme.color.card,
-    borderRadius: theme.radius.xl,
+    borderRadius: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: theme.color.border,
-    padding: theme.space.lg,
   },
 });

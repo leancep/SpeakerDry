@@ -19,14 +19,12 @@ export default function CleanScreen({ route, navigation }: Props) {
 
   const [durationSec, setDurationSec] = useState(0);
   const [currentSec, setCurrentSec] = useState(0);
-  // ✅ ahora no auto-play: cuando está cargado queda "paused" esperando Play
   const [status, setStatus] = useState<"loading" | "playing" | "paused" | "done">("loading");
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationRef = useRef(0);
 
   const percent = durationSec > 0 ? (currentSec / durationSec) * 100 : 0;
-
   const pulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -81,7 +79,6 @@ export default function CleanScreen({ route, navigation }: Props) {
     }, 200);
   }
 
-  // ✅ al montar: solo carga el audio (no reproduce)
   useEffect(() => {
     let mounted = true;
 
@@ -100,8 +97,6 @@ export default function CleanScreen({ route, navigation }: Props) {
 
         durationRef.current = dur;
         setDurationSec(dur);
-
-        // ✅ queda listo esperando Play
         setStatus("paused");
       } catch {
         setStatus("done");
@@ -117,10 +112,13 @@ export default function CleanScreen({ route, navigation }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawName]);
 
-  const modeLabel = mode === "quick" ? "Rápido" : "Profundo";
+  const modeLabel = mode === "quick" ? "Quick" : "Deep";
+  const modeHint =
+    mode === "quick"
+      ? "Quick mode · keep volume high"
+      : "Deep mode · keep volume high";
 
   const onPlayFromStart = () => {
-    // ✅ Play inicial: arrancar desde 0
     setCurrentSec(0);
     setStatus("playing");
 
@@ -140,7 +138,6 @@ export default function CleanScreen({ route, navigation }: Props) {
   };
 
   const onResume = () => {
-    // ✅ Reanudar: NO reset
     setStatus("playing");
 
     Player.play({
@@ -167,7 +164,7 @@ export default function CleanScreen({ route, navigation }: Props) {
   const onStop = () => {
     Player.stop();
     setCurrentSec(0);
-    setStatus("paused"); // ✅ vuelve a listo para Play
+    setStatus("paused");
     stopTicking();
   };
 
@@ -178,8 +175,8 @@ export default function CleanScreen({ route, navigation }: Props) {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text style={styles.title}>Limpiando altavoz</Text>
-        <Text style={styles.subtitle}>Modo {modeLabel} · mantené el volumen alto</Text>
+        <Text style={styles.title}>Cleaning speaker</Text>
+        <Text style={styles.subtitle}>{modeHint}</Text>
       </View>
 
       <Card style={styles.centerCard}>
@@ -190,35 +187,40 @@ export default function CleanScreen({ route, navigation }: Props) {
         <Text style={styles.time}>
           {durationSec > 0 ? `${currentSec.toFixed(1)}s / ${durationSec.toFixed(1)}s` : ""}
         </Text>
+
+        <Text style={styles.microCopy}>
+          {status === "playing"
+            ? "Sound waves are vibrating to help eject water & debris."
+            : "Press Play and keep volume high."}
+        </Text>
       </Card>
 
       <Card style={styles.tipsCard}>
-        <Text style={styles.tipTitle}>Tips rápidos</Text>
-        <Text style={styles.tip}>🔊 Subí el volumen del sistema</Text>
-        <Text style={styles.tip}>📱 Altavoz mirando hacia abajo</Text>
-        <Text style={styles.tip}>🧼 Quitá la funda si tapa la rejilla</Text>
+        <Text style={styles.tipTitle}>Quick tips</Text>
+        <Text style={styles.tip}>🔊 Set system volume to max</Text>
+        <Text style={styles.tip}>📱 Keep the speaker facing down</Text>
+        <Text style={styles.tip}>🧼 Remove the case if it blocks the grill</Text>
       </Card>
 
       <View style={styles.controls}>
         {status === "loading" ? (
-          <PrimaryButton label="Cargando audio…" onPress={() => {}} loading />
+          <PrimaryButton label="Loading audio…" onPress={() => {}} loading />
         ) : status === "playing" ? (
-          <PrimaryButton label="⏸ Pausa" onPress={onPause} />
+          <PrimaryButton label="⏸ Pause" onPress={onPause} />
         ) : status === "paused" ? (
           <PrimaryButton
-            label={currentSec > 0 ? "▶️ Reanudar" : "▶️ Play"}
+            label={currentSec > 0 ? "▶️ Resume" : "▶️ Play"}
             onPress={currentSec > 0 ? onResume : onPlayFromStart}
           />
         ) : (
-          <PrimaryButton label="✅ Terminar" onPress={onFinish} />
+          <PrimaryButton label="✅ Done" onPress={onFinish} />
         )}
 
         <PrimaryButton label="⏹ Stop" variant="secondary" onPress={onStop} />
       </View>
 
       <Text style={styles.disclaimer}>
-        Ayuda a expulsar agua de la rejilla del altavoz. No reemplaza un servicio técnico si el equipo quedó con
-        daño interno.
+        Helps eject water from the speaker grill. It won’t fix hardware damage or internal corrosion.
       </Text>
     </Screen>
   );
@@ -231,6 +233,8 @@ const styles = StyleSheet.create({
 
   centerCard: { alignItems: "center", gap: 10 },
   time: { color: theme.color.muted },
+
+  microCopy: { color: theme.color.muted, fontSize: 12, textAlign: "center", marginTop: 2 },
 
   tipsCard: { padding: theme.space.md },
   tipTitle: { fontSize: 15, fontWeight: "900", color: theme.color.text, marginBottom: 6 },

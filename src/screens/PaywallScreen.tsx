@@ -15,22 +15,22 @@ export default function PaywallScreen({ navigation }: Props) {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text style={styles.title}>Desbloqueá PRO</Text>
-        <Text style={styles.subtitle}>Más potencia de limpieza y sin interrupciones.</Text>
+        <Text style={styles.title}>Unlock PRO Cleaning</Text>
+        <Text style={styles.subtitle}>Stronger vibration, deeper cleaning, and no ads.</Text>
       </View>
 
       <Card>
-        <Text style={styles.sectionTitle}>Incluye</Text>
+        <Text style={styles.sectionTitle}>What you get</Text>
         <View style={{ gap: 8, marginTop: 10 }}>
-          <Text style={styles.item}>✅ Limpieza profunda (2 min)</Text>
-          <Text style={styles.item}>✅ Manual ilimitado</Text>
-          <Text style={styles.item}>✅ Sin publicidad</Text>
+          <Text style={styles.item}>✅ Deep Clean mode (2 min)</Text>
+          <Text style={styles.item}>✅ Full frequency range (200–3000 Hz)</Text>
+          <Text style={styles.item}>✅ Ad-free experience</Text>
         </View>
 
         <View style={{ height: 16 }} />
         <View style={styles.priceRow}>
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>Plan</Text>
+            <Text style={styles.badgeText}>Monthly Plan</Text>
           </View>
           <Text style={styles.priceText}>{ent.proLabel}</Text>
         </View>
@@ -38,20 +38,20 @@ export default function PaywallScreen({ navigation }: Props) {
         <View style={{ height: 14 }} />
 
         {ent.isPro ? (
-          <PrimaryButton label="✅ PRO activo" onPress={() => navigation.goBack()} />
+          <PrimaryButton label="✅ PRO active" onPress={() => navigation.goBack()} />
         ) : (
           <>
-            <PrimaryButton label="💎 Probar PRO" onPress={ent.buyPro} />
+            <PrimaryButton label="💎 Start PRO" onPress={ent.buyPro} />
             <View style={{ height: 10 }} />
-            <PrimaryButton label="Restaurar compra" variant="secondary" onPress={ent.restore} />
+            <PrimaryButton label="Restore purchase" variant="secondary" onPress={ent.restore} />
           </>
         )}
       </Card>
 
-      <PrimaryButton label="No, gracias" variant="ghost" onPress={() => navigation.goBack()} />
+      <PrimaryButton label="No thanks" variant="ghost" onPress={() => navigation.goBack()} />
 
       <Text style={styles.legal}>
-        Cancelás cuando quieras. Las compras se gestionan en Google Play / App Store.
+        Cancel anytime. Purchases are managed in Google Play.
       </Text>
     </Screen>
   );

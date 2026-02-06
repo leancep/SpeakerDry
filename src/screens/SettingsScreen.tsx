@@ -17,14 +17,14 @@ export default function SettingsScreen({ navigation }: Props) {
   return (
     <Screen scroll>
       <View style={{ gap: 6 }}>
-        <Text style={styles.subtitle}>Información, estado PRO y utilidades.</Text>
+        <Text style={styles.subtitle}>Info, PRO status, and utilities.</Text>
       </View>
 
       <Card style={{ gap: 10 }}>
         <View style={styles.row}>
-          <Text style={styles.h}>Estado</Text>
+          <Text style={styles.h}>Status</Text>
           {ent.isPro ? (
-            <ProBadge text="PRO ACTIVO" variant="active" />
+            <ProBadge text="PRO" variant="active" />
           ) : (
             <ProBadge text="FREE" variant="pro" />
           )}
@@ -32,27 +32,23 @@ export default function SettingsScreen({ navigation }: Props) {
 
         <Text style={styles.p}>
           {ent.isPro
-            ? "Tenés PRO habilitado. Deep Clean y Hz avanzados disponibles."
-            : "Estás en FREE. Deep Clean y Hz avanzados se desbloquean con PRO."}
+            ? "PRO is enabled. Deep Clean and the full frequency range are available."
+            : "You’re on FREE. Deep Clean and advanced frequencies unlock with PRO."}
         </Text>
 
         <PrimaryButton
-          label={ent.isPro ? "Ver beneficios PRO" : "Desbloquear PRO"}
+          label={ent.isPro ? "View PRO benefits" : "Unlock PRO"}
           variant="secondary"
           onPress={() => navigation.navigate("Paywall", { source: "home" })}
         />
 
-        <PrimaryButton
-          label="🔄 Refrescar estado"
-          variant="ghost"
-          onPress={() => ent.refresh()}
-        />
+        <PrimaryButton label="🔄 Refresh status" variant="ghost" onPress={() => ent.refresh()} />
       </Card>
 
       <Card style={{ gap: 8 }}>
-        <Text style={styles.h}>Acerca de</Text>
-        <Text style={styles.p}>SpeakerDry · Limpieza por frecuencias.</Text>
-        <Text style={styles.pSmall}>Versión: 0.1.0</Text>
+        <Text style={styles.h}>About</Text>
+        <Text style={styles.p}>SpeakerDry · Speaker cleaner with sound waves.</Text>
+        <Text style={styles.pSmall}>Version: 0.1.0</Text>
       </Card>
 
       {__DEV__ && (
@@ -60,14 +56,12 @@ export default function SettingsScreen({ navigation }: Props) {
           <Text style={styles.h}>Dev tools</Text>
 
           <PrimaryButton
-            label={ent.isPro ? "✅ PRO activo (tocar para desactivar)" : "🔓 Activar PRO (DEV)"}
+            label={ent.isPro ? "✅ PRO active (tap to disable)" : "🔓 Enable PRO (DEV)"}
             variant="secondary"
             onPress={() => ent.setProDebug(!ent.isPro)}
           />
 
-          <Text style={styles.pSmall}>
-            Solo visible en desarrollo. Persiste en el dispositivo.
-          </Text>
+          <Text style={styles.pSmall}>Dev-only. Persists on the device.</Text>
         </Card>
       )}
     </Screen>

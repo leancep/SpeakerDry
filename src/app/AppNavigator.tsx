@@ -50,23 +50,16 @@ export default function AppNavigator() {
                     name="Home"
                     component={HomeScreen}
                 />
-                <Stack.Screen
-                    name="Clean"
-                    component={CleanScreen}
-                    options={{ title: "Limpiando…" }}
-                />
-                <Stack.Screen
-                    name="Manual"
-                    component={ManualScreen}
-                    options={{ title: "Manual Hz" }}
-                />
+
                 <Stack.Screen
                     name="Paywall"
                     component={PaywallScreen}
                     options={{ presentation: "modal", title: "" }}
                 />
 
-                <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Ajustes" }} />
+                <Stack.Screen name="Clean" component={CleanScreen} options={{ title: "Cleaning…" }} />
+                <Stack.Screen name="Manual" component={ManualScreen} options={{ title: "Manual Hz" }} />
+                <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
 
             </Stack.Navigator>
         </NavigationContainer>

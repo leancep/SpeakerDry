@@ -52,7 +52,7 @@ function EntitlementsProviderNoop({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       isPro,
-      proLabel: "Plan mensual",
+      proLabel: "US$ 3,00",
       canManualUnlimited: isPro,
       canDeepClean: isPro,
 
@@ -131,7 +131,7 @@ function EntitlementsProviderIap({ children }: { children: React.ReactNode }) {
   }, [connected]);
 
   const proSub = subscriptions.find((s) => s.id === PRO_SKU);
-  const proLabel = useMemo(() => proSub?.displayPrice ?? "Plan mensual", [proSub]);
+  const proLabel = useMemo(() => proSub?.displayPrice ?? "US$ 3,00", [proSub]);
 
   async function buyPro() {
     if (!connected) {

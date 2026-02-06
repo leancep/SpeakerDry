@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, Alert, Platform } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import Slider from "@react-native-community/slider";
 import { Screen, Card } from "../components/Screen";
 import { theme } from "../app/theme";
@@ -11,13 +11,7 @@ import type { RootStackParamList } from "../app/routes";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Manual">;
 
-// ✅ FREE (según tus WAVs)
 const STEPS_FREE = [200, 400, 800, 1200] as const;
-
-// ⚠️ IMPORTANTE:
-// Dijiste que en res/raw tenés: 200, 400, 800, 1200, 2000, 3000
-// Si NO tenés tone_300.wav y tone_600.wav, dejá STEPS_PRO sin 300/600.
-// Si sí los agregás, podés volver a ponerlos.
 const STEPS_PRO = [200, 400, 800, 1200, 2000, 3000] as const;
 
 export default function ManualScreen({ navigation }: Props) {
@@ -38,7 +32,6 @@ export default function ManualScreen({ navigation }: Props) {
     return () => Player.stop();
   }, []);
 
-  // Si cambia FREE/PRO y el hz actual no existe en el set nuevo, re-encauzar.
   useEffect(() => {
     const currentHz = steps[idx] ?? defaultHz;
     const nextIdx = steps.indexOf(currentHz);
@@ -51,24 +44,19 @@ export default function ManualScreen({ navigation }: Props) {
   }
 
   async function applyHz(nextHz: number) {
-    // defensivo (por si en algún momento reintroducís 300/600 sin WAVs)
     if (!ent.canManualUnlimited && !STEPS_FREE.includes(nextHz as any)) {
       goPaywall();
       return;
     }
 
-    // Si estaba sonando, cambiamos estable: stop → play del nuevo tono
     if (playing) {
       try {
         Player.stop();
         await Player.playRaw(`tone_${nextHz}`, true, 1);
         setPlaying(true);
-      } catch (e: any) {
+      } catch {
         setPlaying(false);
-        Alert.alert(
-          "Audio no disponible",
-          `No se encontró el tono tone_${nextHz}.wav en res/raw`
-        );
+        Alert.alert("Audio not available", `Missing file: tone_${nextHz}.wav in res/raw`);
       }
     }
   }
@@ -77,12 +65,9 @@ export default function ManualScreen({ navigation }: Props) {
     try {
       await Player.playRaw(`tone_${hz}`, true, 1);
       setPlaying(true);
-    } catch (e: any) {
+    } catch {
       setPlaying(false);
-      Alert.alert(
-        "Audio no disponible",
-        `No se encontró el tono tone_${hz}.wav en res/raw`
-      );
+      Alert.alert("Audio not available", `Missing file: tone_${hz}.wav in res/raw`);
     }
   }
 
@@ -103,8 +88,8 @@ export default function ManualScreen({ navigation }: Props) {
     <Screen>
       <View style={{ gap: 6 }}>
         <Text style={styles.subtitle}>
-          Elegí una frecuencia y probá 5–10s.
-          {!ent.canManualUnlimited ? " (FREE limitado)" : ""}
+          Try a frequency for 5–10 seconds and keep the one with the strongest vibration.
+          {!ent.canManualUnlimited ? " (FREE limited)" : ""}
         </Text>
       </View>
 
@@ -112,15 +97,14 @@ export default function ManualScreen({ navigation }: Props) {
         <View style={styles.dial}>
           <View style={styles.dialInner}>
             <Text style={styles.hz}>{hz} Hz</Text>
-            <Text style={styles.hint}>Seno · vibración constante</Text>
+            <Text style={styles.hint}>Steady vibration tone</Text>
             {!ent.canManualUnlimited && (
-              <Text style={styles.proHint}>💎 Más frecuencias en PRO</Text>
+              <Text style={styles.proHint}>💎 More frequencies in PRO</Text>
             )}
           </View>
         </View>
 
         <View style={{ width: "100%", marginTop: 12 }}>
-          {/* ✅ Slider por índice (alineación perfecta con labels) */}
           <Slider
             minimumValue={sliderMin}
             maximumValue={sliderMax}
@@ -155,7 +139,7 @@ export default function ManualScreen({ navigation }: Props) {
         <View style={{ height: 10 }} />
 
         {playing ? (
-          <PrimaryButton label="⏸ Pausa" onPress={onPause} />
+          <PrimaryButton label="⏸ Pause" onPress={onPause} />
         ) : (
           <PrimaryButton label="▶️ Play" onPress={onPlay} />
         )}
@@ -163,20 +147,21 @@ export default function ManualScreen({ navigation }: Props) {
         <PrimaryButton label="⏹ Stop" variant="secondary" onPress={onStop} />
 
         {!ent.canManualUnlimited && (
-          <PrimaryButton label="💎 Desbloquear PRO" variant="ghost" onPress={goPaywall} />
+          <PrimaryButton label="💎 Unlock PRO" variant="ghost" onPress={goPaywall} />
         )}
       </Card>
 
       <Card style={{ padding: 14 }}>
         <Text style={styles.tipTitle}>Tip</Text>
-        <Text style={styles.tip}>🔊 Volumen alto · 📱 altavoz hacia abajo · 🧼 sin funda</Text>
+        <Text style={styles.tip}>
+          🔊 Volume max · 📱 speaker down · 🧼 remove case if it blocks the grill
+        </Text>
       </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: "900", color: theme.color.text, textAlign: "center" },
   subtitle: { fontSize: 13, color: theme.color.muted, textAlign: "center" },
 
   dialCard: { alignItems: "center", gap: 10 },
