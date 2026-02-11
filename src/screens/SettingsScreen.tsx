@@ -217,7 +217,6 @@ export default function SettingsScreen({ navigation }: Props) {
           onPress={() => navigation.navigate("Paywall", { source: "settings" })}
         />
 
-        <PrimaryButton label="🔄 Refresh status" variant="ghost" onPress={() => ent.refresh()} />
       </Card>
 
       {/* ABOUT */}

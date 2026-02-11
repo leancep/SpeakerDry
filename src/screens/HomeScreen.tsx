@@ -8,6 +8,7 @@ import { theme } from "../app/theme";
 import Chip from "../components/Chip";
 import { useEntitlements } from "../pro/EntitlementsProvider";
 import ProBadge from "../components/ProBadge";
+import { useAdNavigation } from "../ads/useAdNavigation";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -94,7 +95,8 @@ export default function HomeScreen({ navigation }: Props) {
                 navigation.navigate("Paywall", { source: "deep-clean" });
                 return;
               }
-              navigation.navigate("Clean", { mode: "deep" });
+              
+              navigation.navigate("Clean", { mode: "deep" })
             }}
           />
         </View>

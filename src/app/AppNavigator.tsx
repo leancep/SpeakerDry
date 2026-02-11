@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./routes";
 import { Pressable, Text } from "react-native";
-
+import { useAdNavigation } from "../ads/useAdNavigation";
 
 import HomeScreen from "../screens/HomeScreen";
 import CleanScreen from "../screens/CleanScreen";
