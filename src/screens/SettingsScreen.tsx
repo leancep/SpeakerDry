@@ -277,10 +277,6 @@ export default function SettingsScreen({ navigation }: Props) {
             />
           ))}
         </View>
-
-        <Text style={styles.pSmall}>
-          Tip: Keep volume at a safe level and stop if you feel discomfort.
-        </Text>
       </Card>
 
       {/* DEV */}

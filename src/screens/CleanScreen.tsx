@@ -212,7 +212,7 @@ export default function CleanScreen({ route, navigation }: Props) {
 
 
     return (
-        <Screen>
+        <Screen scroll>
             <View style={styles.header}>
                 <Text style={styles.title}>Cleaning speaker</Text>
                 <Text style={styles.subtitle}>{modeHint}</Text>
@@ -246,9 +246,10 @@ export default function CleanScreen({ route, navigation }: Props) {
 
             <Card style={styles.tipsCard}>
                 <Text style={styles.tipTitle}>Quick tips</Text>
-                <Text style={styles.tip}>🔊 Set system volume to max</Text>
+                <Text style={styles.tip}>🔊 Set system volume to max but, stop if discomfort”</Text>
                 <Text style={styles.tip}>📱 Keep the speaker facing down</Text>
                 <Text style={styles.tip}>🧼 Remove the case if it blocks the grill</Text>
+                <Text style={styles.tip}>Don’t use near ear</Text>
             </Card>
 
             <View style={styles.controls}>

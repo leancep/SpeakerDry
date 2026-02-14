@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, StyleSheet, View, ScrollView } from "react-native";
+import { Text, StyleSheet, View, ScrollView, Animated, Easing } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../app/routes";
 import PrimaryButton from "../components/PrimaryButton";
@@ -8,12 +8,56 @@ import { theme } from "../app/theme";
 import Chip from "../components/Chip";
 import { useEntitlements } from "../pro/EntitlementsProvider";
 import ProBadge from "../components/ProBadge";
-import { useAdNavigation } from "../ads/useAdNavigation";
+import * as Haptics from "expo-haptics";
+
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export default function HomeScreen({ navigation }: Props) {
   const ent = useEntitlements();
+
+  const lastHapticAtRef = React.useRef(0);
+
+  async function lockedFeedback() {
+    const now = Date.now();
+    if (now - lastHapticAtRef.current < 600) return;
+    lastHapticAtRef.current = now;
+
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch { }
+  }
+
+  const proAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    if (ent.isPro) return;
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(proAnim, {
+          toValue: 1,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(proAnim, {
+          toValue: 0,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    loop.start();
+    return () => loop.stop();
+  }, [ent.isPro, proAnim]);
+
+  const proScale = proAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.04],
+  });
 
   return (
     <Screen scroll>
@@ -90,14 +134,18 @@ export default function HomeScreen({ navigation }: Props) {
           <PrimaryButton
             label={ent.canDeepClean ? "🧽 Deep Speaker Clean (2 min)" : "🔒 Deep Speaker Clean (2 min)"}
             variant="secondary"
-            onPress={() => {
+            onPress={async () => {
               if (!ent.canDeepClean) {
+
+                await lockedFeedback(); // 🔥 vibración premium
+
                 navigation.navigate("Paywall", { source: "deep-clean" });
                 return;
               }
-              
-              navigation.navigate("Clean", { mode: "deep" })
+
+              navigation.navigate("Clean", { mode: "deep" });
             }}
+
           />
         </View>
       </Card>
@@ -132,16 +180,18 @@ export default function HomeScreen({ navigation }: Props) {
       {ent.isPro ? (
         <PrimaryButton
           label="✅ PRO active"
-          variant="ghost"
+          variant="secondary"
           onPress={() => navigation.navigate("Paywall", { source: "home" })}
         />
       ) : (
-        <PrimaryButton
-          label="💎 Unlock PRO"
-          variant="ghost"
-          onPress={() => navigation.navigate("Paywall", { source: "home" })}
-        />
+        <Animated.View style={{ transform: [{ scale: proScale }] }}>
+          <PrimaryButton
+            label="💎 Unlock PRO"
+            onPress={() => navigation.navigate("Paywall", { source: "home" })}
+          />
+        </Animated.View>
       )}
+
     </Screen>
   );
 }
