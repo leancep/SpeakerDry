@@ -10,7 +10,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../app/routes";
 import { useActionAd } from "../ads/useActionAd";
 import { waitForUiSettled } from "../ads/navAfterAd";
-import * as Haptics from "expo-haptics";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Manual">;
 
@@ -26,7 +25,6 @@ export default function ManualScreen({ navigation }: Props) {
 
     const openedAtRef = useRef(Date.now());
     const didUseRef = useRef(false);
-    const lastHapticAtRef = useRef(0);
 
     const isProManual = ent.canManualUnlimited;
 
@@ -126,15 +124,6 @@ export default function ManualScreen({ navigation }: Props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isProManual]);
 
-    async function lockedFeedback() {
-        const now = Date.now();
-        if (now - lastHapticAtRef.current < 600) return; // 0.6s
-        lastHapticAtRef.current = now;
-
-        try {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        } catch { }
-    }
 
     function goPaywallSafe() {
         if (paywallLockRef.current) return;
@@ -207,7 +196,6 @@ export default function ManualScreen({ navigation }: Props) {
 
         if (isLockedIdx(clamped)) {
 
-            await lockedFeedback(); // vibracion
             // rebote al último permitido (o 1 = 400)
             const fallback = Math.min(maxFreeIdx, Math.max(0, lastAllowedIdxRef.current ?? 1));
             lastAllowedIdxRef.current = fallback;

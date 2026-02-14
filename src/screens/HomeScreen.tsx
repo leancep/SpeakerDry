@@ -8,25 +8,12 @@ import { theme } from "../app/theme";
 import Chip from "../components/Chip";
 import { useEntitlements } from "../pro/EntitlementsProvider";
 import ProBadge from "../components/ProBadge";
-import * as Haptics from "expo-haptics";
 
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export default function HomeScreen({ navigation }: Props) {
   const ent = useEntitlements();
-
-  const lastHapticAtRef = React.useRef(0);
-
-  async function lockedFeedback() {
-    const now = Date.now();
-    if (now - lastHapticAtRef.current < 600) return;
-    lastHapticAtRef.current = now;
-
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch { }
-  }
 
   const proAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -136,8 +123,6 @@ export default function HomeScreen({ navigation }: Props) {
             variant="secondary"
             onPress={async () => {
               if (!ent.canDeepClean) {
-
-                await lockedFeedback(); // 🔥 vibración premium
 
                 navigation.navigate("Paywall", { source: "deep-clean" });
                 return;
