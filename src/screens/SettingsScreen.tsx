@@ -133,7 +133,7 @@ export default function SettingsScreen({ navigation }: Props) {
         "• We may use anonymous, aggregated analytics (e.g., crashes/performance) to improve stability.",
         "",
         "Contact",
-        "• If you have privacy questions: ljcepeda96@gmail.com",
+        "• If you have privacy questions: speakerdry@gmail.com",
       ].join("\n"),
     []
   );
